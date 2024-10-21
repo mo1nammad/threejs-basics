@@ -1,5 +1,5 @@
 {
-   "name": "session-3",
+   "name": "basics",
    "type": "module",
    "scripts": {
       "dev": "vite",

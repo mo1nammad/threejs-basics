@@ -14,13 +14,16 @@ const material = new Three.MeshBasicMaterial({ color: 0xff0000 });
 
 const mesh = new Three.Mesh(geometry, material);
 mesh.position.z = 0.5;
-mesh.position.y = 1;
-mesh.position.x = 1;
-
-console.log(mesh.position.length());
+mesh.position.y = -1;
+mesh.position.x = -2.5;
 
 scene.add(mesh);
 
+// vector playground
+console.log(mesh.position.length());
+
+mesh.position.normalize();
+console.log(mesh.position.length());
 // sizes
 const sizes = {
    width: 800,
@@ -33,7 +36,7 @@ const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 camera.position.z = 3;
 scene.add(camera);
 
-console.log(camera.position.distanceTo(mesh.position));
+// console.log(camera.position.distanceTo(mesh.position));
 
 const renderer = new Three.WebGLRenderer({
    canvas,

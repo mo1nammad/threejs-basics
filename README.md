@@ -1,4 +1,4 @@
-# session-3
+# basics
 
 To install dependencies:
 
