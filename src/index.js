@@ -5,6 +5,31 @@ import * as Three from "three";
 const scene = new Three.Scene();
 const canvas = document.getElementsByClassName("webgl")[0];
 
+// group
+const group = new Three.Group();
+scene.add(group);
+
+const cube1 = new Three.Mesh(
+   new Three.BoxGeometry(1, 1, 1),
+   new Three.MeshBasicMaterial({ color: 0xff0000 })
+);
+cube1.position.x = 1.5;
+group.add(cube1);
+
+const cube2 = new Three.Mesh(
+   new Three.BoxGeometry(1, 1, 1),
+   new Three.MeshBasicMaterial({ color: 0x00ff00 })
+);
+cube2.position.x = 3;
+group.add(cube2);
+
+const cube3 = new Three.Mesh(
+   new Three.BoxGeometry(1, 1, 1),
+   new Three.MeshBasicMaterial({ color: 0x0000ff })
+);
+group.position.x = 3;
+group.add(cube3);
+
 // geometry and material
 
 const geometry = new Three.BoxGeometry(1, 1, 1);
@@ -46,14 +71,15 @@ const sizes = {
 // camera : perspective
 
 const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
-camera.position.z = 2;
-camera.position.x = 1;
-camera.position.y = 1;
+camera.position.z = 4;
+camera.position.x = group.position.x + cube1.position.x;
+camera.position.y = group.position.y;
 
 scene.add(camera);
 
 // to look at any object
-camera.lookAt(mesh.position);
+// camera.lookAt(mesh.position);
+// camera.lookAt(group.position);
 // console.log(camera.position.distanceTo(mesh.position));
 
 const renderer = new Three.WebGLRenderer({
