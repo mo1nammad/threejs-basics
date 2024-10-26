@@ -1,5 +1,6 @@
 import * as Three from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import "./styles/styles.css";
 
 import Cursor from "./modules/Cursor";
 // import gsap from "gsap";
@@ -11,25 +12,42 @@ const canvas = document.querySelector("canvas.webgl");
 const scene = new Three.Scene();
 
 const sizes = {
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
 };
+
+window.addEventListener("resize", () => {
+  // update sizes
+  sizes.width = window.innerWidth;
+  sizes.height = window.innerHeight;
+
+  // update camera
+  camera.aspect = sizes.width / sizes.height;
+  camera.updateProjectionMatrix();
+
+  // update renderer
+  renderer.setSize(sizes.width, sizes.height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+});
+
+window.addEventListener("dblclick", () => {
+  const fullscreenElement =
+    document.fullscreenElement || document.webkitFullscreenElement;
+
+  if (fullscreenElement) {
+    // exit fulscreen
+    if (document.exitFullscreen) document.exitFullscreen();
+    else document.webkitExitFullscreen();
+  } else {
+    // enter fullscreen
+    if (canvas.requestFullscreen) canvas.requestFullscreen();
+    else canvas.webkitRequestFullscreen();
+  }
+});
 
 // camera
 const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 
-// const aspectRatio = sizes.width / sizes.height;
-
-// const camera = new Three.OrthographicCamera(
-//   -1 * aspectRatio,
-//   1 * aspectRatio,
-//   1,
-//   -1,
-//   0.1,
-//   100
-// );
-// camera.position.x = 2;
-// camera.position.y = 2;
 camera.position.z = 3;
 scene.add(camera);
 
@@ -42,7 +60,7 @@ canvas.addEventListener("mousemove", (ev) => {
 
 // mesh
 const geometry = new Three.BoxGeometry(1, 1, 1);
-const material = new Three.MeshBasicMaterial({ color: "#78f1ff" });
+const material = new Three.MeshBasicMaterial({ color: "#088F8F" });
 
 const mesh = new Three.Mesh(geometry, material);
 scene.add(mesh);
@@ -59,6 +77,7 @@ const renderer = new Three.WebGLRenderer({
 });
 
 renderer.setSize(sizes.width, sizes.height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const animate = () => {
   // camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2;
