@@ -1,4 +1,6 @@
 import * as Three from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
 import Cursor from "./modules/Cursor";
 // import gsap from "gsap";
 
@@ -45,6 +47,11 @@ const material = new Three.MeshBasicMaterial({ color: "#78f1ff" });
 const mesh = new Three.Mesh(geometry, material);
 scene.add(mesh);
 
+// controls
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+controls.autoRotate = true;
+
 // animation and render
 
 const renderer = new Three.WebGLRenderer({
@@ -54,9 +61,10 @@ const renderer = new Three.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 
 const animate = () => {
-  camera.position.y = cursor.y * 2;
-  camera.position.x = -cursor.x * 2;
-  camera.lookAt(mesh.position);
+  // camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2;
+  // camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 2;
+  // camera.lookAt(mesh.position);
+  controls.update();
   renderer.render(scene, camera);
 };
 
