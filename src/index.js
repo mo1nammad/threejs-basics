@@ -1,9 +1,8 @@
 import * as Three from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import "./styles/styles.css";
 
-import Cursor from "./modules/Cursor";
-// import gsap from "gsap";
+// css
+import "./styles/styles.css";
 
 // dom element
 const canvas = document.querySelector("canvas.webgl");
@@ -48,19 +47,27 @@ window.addEventListener("dblclick", () => {
 // camera
 const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 
-camera.position.z = 3;
+camera.position.z = 2;
 scene.add(camera);
 
-// cursor
-const cursor = new Cursor(sizes.width, sizes.height);
+// mesh and geometries
+// buffer geometries **
 
-canvas.addEventListener("mousemove", (ev) => {
-  cursor.setAxis(ev.clientX, ev.clientY);
+const geometry = new Three.BufferGeometry();
+
+const count = 50;
+const positionsArray = new Float32Array(count * 3 * 3);
+
+for (let i = 0; i < count * 3 * 3; i++) {
+  positionsArray[i] = Math.random() - 0.5;
+}
+const positionAttribute = new Three.BufferAttribute(positionsArray, 3);
+geometry.setAttribute("position", positionAttribute);
+
+const material = new Three.MeshBasicMaterial({
+  color: "#088F8F",
+  wireframe: true,
 });
-
-// mesh
-const geometry = new Three.BoxGeometry(1, 1, 1);
-const material = new Three.MeshBasicMaterial({ color: "#088F8F" });
 
 const mesh = new Three.Mesh(geometry, material);
 scene.add(mesh);
@@ -68,7 +75,6 @@ scene.add(mesh);
 // controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.autoRotate = true;
 
 // animation and render
 
@@ -80,10 +86,8 @@ renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const animate = () => {
-  // camera.position.x = Math.sin(cursor.x * Math.PI * 2) * 2;
-  // camera.position.z = Math.cos(cursor.x * Math.PI * 2) * 2;
-  // camera.lookAt(mesh.position);
   controls.update();
+
   renderer.render(scene, camera);
 };
 
