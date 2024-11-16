@@ -1,15 +1,10 @@
 import * as Three from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-// debug ui
-import { GUI } from "lil-gui";
-const gui = new GUI();
-const customBox = gui.addFolder("my folder");
-const debugObject = {};
-
+// loader manager
+import loadingManager from "./modules/loading-manager";
 // css
 import "./styles/styles.css";
-import gsap from "gsap";
 
 // dom element
 const canvas = document.querySelector("canvas.webgl");
@@ -36,10 +31,6 @@ window.addEventListener("resize", () => {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 });
 
-window.addEventListener("keydown", (ev) => {
-  if (ev.key === "h") gui.show(gui._hidden);
-});
-
 canvas.addEventListener("dblclick", () => {
   const fullscreenElement =
     document.fullscreenElement || document.webkitFullscreenElement;
@@ -61,53 +52,48 @@ const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 camera.position.z = 3;
 scene.add(camera);
 
-// mesh and geometries
+// texture
 
-debugObject.color = "#a778da";
+const textureLoader = new Three.TextureLoader(loadingManager);
+const colorTexture = textureLoader.load("/textures/checkerboard-8x8.png");
+
+colorTexture.colorSpace = Three.SRGBColorSpace;
+/*
+ its kinda grid row and column in css
+*/
+
+// colorTexture.repeat.x = 2;
+// colorTexture.repeat.y = 3;
+
+// colorTexture.wrapS = Three.RepeatWrapping;
+// colorTexture.wrapT = Three.RepeatWrapping;
+
+// colorTexture.wrapS = Three.MirroredRepeatWrapping;
+// colorTexture.wrapT = Three.MirroredRepeatWrapping;
+
+// colorTexture.offset.y = 0.5;
+// colorTexture.center.x = 0.5;
+// colorTexture.center.y = 0.5;
+// colorTexture.rotation = Math.PI / 4;
+
+/*
+  Three.NearestFilter gets us sharper results
+  Three.LinearFilter is default that shows blury results based on the renderer size and texture size
+*/
+
+colorTexture.minFilter = Three.NearestFilter;
+
+colorTexture.magFilter = Three.NearestFilter;
+
+// mesh and geometries
 
 const geometry = new Three.BoxGeometry(1, 1, 1, 2, 2, 2);
 
-const material = new Three.MeshBasicMaterial({ color: debugObject.color });
+const material = new Three.MeshBasicMaterial({ map: colorTexture });
 
 const mesh = new Three.Mesh(geometry, material);
 
 scene.add(mesh);
-
-customBox
-  .add(mesh.rotation, "y")
-  .min(Math.PI * -2)
-  .max(Math.PI * 2)
-  .step(Math.PI * 0.005)
-  .name("rotateY");
-
-customBox.add(mesh, "visible");
-customBox.add(material, "wireframe");
-
-customBox.addColor(debugObject, "color").onChange(() => {
-  material.color.set(debugObject.color);
-});
-
-debugObject.spin = () => {
-  // mesh.rotation.y = Math.PI / 4;
-  gsap.to(mesh.rotation, {
-    y: mesh.rotation.y + (Math.PI / 3) * 2,
-    ease: "power2.inOut",
-    duration: 1,
-  });
-};
-customBox.add(debugObject, "spin");
-
-debugObject.subdivision = 2;
-customBox
-  .add(debugObject, "subdivision")
-  .min(1)
-  .max(20)
-  .step(1)
-  .onFinishChange((value) => {
-    console.log(value);
-    mesh.geometry.dispose();
-    mesh.geometry = new Three.BoxGeometry(1, 1, 1, value, value, value);
-  });
 
 // controls
 const controls = new OrbitControls(camera, canvas);
@@ -124,7 +110,7 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
 const animate = () => {
   controls.update();
-  camera.lookAt(mesh.position);
+
   renderer.render(scene, camera);
 };
 
