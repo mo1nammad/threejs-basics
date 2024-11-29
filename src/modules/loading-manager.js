@@ -11,7 +11,7 @@ const loadingManager = new Three.LoadingManager();
 // loadingManager.onLoad = () => {
 //   console.log("load");
 // };
-// loadingManager.onError = () => {
-//   console.log("error");
-// };
+loadingManager.onError = () => {
+  console.log("error");
+};
 export default loadingManager;

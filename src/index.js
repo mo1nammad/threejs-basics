@@ -1,16 +1,37 @@
 import * as Three from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
-// loader manager
+// loaders
 import loadingManager from "./modules/loading-manager";
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+
 // css
 import "./styles/styles.css";
+
+// meshs
+import {
+  planeMesh,
+  sphereMesh,
+  torusMesh,
+  ambientLight,
+  pointLight,
+} from "./modules/meshs";
 
 // dom element
 const canvas = document.querySelector("canvas.webgl");
 
 // scene
 const scene = new Three.Scene();
+
+const rgbLoader = new RGBELoader();
+rgbLoader.load("/textures/environmentMap/2k.hdr", (environmentMap) => {
+  environmentMap.mapping = Three.EquirectangularRefractionMapping;
+
+  scene.background = environmentMap;
+  scene.environment = environmentMap;
+});
+
+scene.add(sphereMesh, planeMesh, torusMesh);
 
 const sizes = {
   width: window.innerWidth,
@@ -49,51 +70,7 @@ canvas.addEventListener("dblclick", () => {
 // camera
 const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 
-camera.position.z = 3;
-scene.add(camera);
-
-// texture
-
-const textureLoader = new Three.TextureLoader(loadingManager);
-const colorTexture = textureLoader.load("/textures/checkerboard-8x8.png");
-
-colorTexture.colorSpace = Three.SRGBColorSpace;
-/*
- its kinda grid row and column in css
-*/
-
-// colorTexture.repeat.x = 2;
-// colorTexture.repeat.y = 3;
-
-// colorTexture.wrapS = Three.RepeatWrapping;
-// colorTexture.wrapT = Three.RepeatWrapping;
-
-// colorTexture.wrapS = Three.MirroredRepeatWrapping;
-// colorTexture.wrapT = Three.MirroredRepeatWrapping;
-
-// colorTexture.offset.y = 0.5;
-// colorTexture.center.x = 0.5;
-// colorTexture.center.y = 0.5;
-// colorTexture.rotation = Math.PI / 4;
-
-/*
-  Three.NearestFilter gets us sharper results
-  Three.LinearFilter is default that shows blury results based on the renderer size and texture size
-*/
-
-colorTexture.minFilter = Three.NearestFilter;
-
-colorTexture.magFilter = Three.NearestFilter;
-
-// mesh and geometries
-
-const geometry = new Three.BoxGeometry(1, 1, 1, 2, 2, 2);
-
-const material = new Three.MeshBasicMaterial({ map: colorTexture });
-
-const mesh = new Three.Mesh(geometry, material);
-
-scene.add(mesh);
+camera.position.z = 4;
 
 // controls
 const controls = new OrbitControls(camera, canvas);
@@ -108,10 +85,23 @@ const renderer = new Three.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const animate = () => {
-  controls.update();
+const clock = new Three.Clock();
 
+const animate = () => {
+  // update meshs
+  // updateMesh();
+
+  controls.update();
   renderer.render(scene, camera);
 };
-
 renderer.setAnimationLoop(animate);
+
+function updateMesh() {
+  const elapesdTimer = clock.getElapsedTime();
+
+  const meshs = [sphereMesh, torusMesh, planeMesh];
+  for (const mesh of meshs) {
+    mesh.rotation.y = elapesdTimer * 0.1;
+    mesh.rotation.x = -elapesdTimer * 0.15;
+  }
+}
