@@ -1,38 +1,24 @@
 import * as Three from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import gsap from "gsap";
 
-// loaders
-import loadingManager from "./modules/loading-manager";
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { FontLoader } from "three/addons/loaders/FontLoader.js";
+import { TextGeometry } from "three/addons/geometries/TextGeometry.js";
 
 // css
 import "./styles/styles.css";
 
-// meshs
-import {
-  planeMesh,
-  sphereMesh,
-  torusMesh,
-  ambientLight,
-  pointLight,
-} from "./modules/meshs";
-
 // dom element
 const canvas = document.querySelector("canvas.webgl");
+
+// loaders
+const fontLoader = new FontLoader();
+const textureLoader = new Three.TextureLoader();
 
 // scene
 const scene = new Three.Scene();
 
-const rgbLoader = new RGBELoader();
-rgbLoader.load("/textures/environmentMap/2k.hdr", (environmentMap) => {
-  environmentMap.mapping = Three.EquirectangularRefractionMapping;
-
-  scene.background = environmentMap;
-  scene.environment = environmentMap;
-});
-
-scene.add(sphereMesh, planeMesh, torusMesh);
-
+// constants
 const sizes = {
   width: window.innerWidth,
   height: window.innerHeight,
@@ -72,6 +58,72 @@ const camera = new Three.PerspectiveCamera(75, sizes.width / sizes.height);
 
 camera.position.z = 4;
 
+// meshs
+const texture = textureLoader.load(
+  "/textures/B09273_7A573D_C7AF97_84644C-128px.png"
+);
+const matcapMaterial = new Three.MeshMatcapMaterial({ matcap: texture });
+
+let textMeshPositions = new Three.Vector3();
+
+fontLoader.load("/fonts/helvetiker_regular.typeface.json", (font) => {
+  const depth = 0.2;
+  const bevelThickness = 0.03;
+  const textGeometry = new TextGeometry("hello world", {
+    font,
+    size: 1,
+    depth,
+    curveSegments: 5,
+    bevelThickness,
+    bevelSize: 0.02,
+    bevelOffset: 0,
+    bevelSegments: 4,
+  });
+
+  const textMesh = new Three.Mesh(textGeometry, matcapMaterial);
+  scene.add(textMesh);
+
+  textGeometry.center();
+  textMeshPositions = textMesh.position;
+});
+
+const torusArray = [];
+const count = 100;
+
+const getRandomPostion = () => {
+  const getRandom = () => (Math.random() * 1.5 - 0.75) * 10;
+  const positions = new Three.Vector3(getRandom(), getRandom(), getRandom());
+
+  if (positions.x === textMeshPositions.x) positions.x += 5;
+  else if (positions.y === textMeshPositions.y) positions.x += 5;
+  else if (positions.z === textMeshPositions.z) positions.x += 5;
+
+  return positions;
+};
+
+const geometry = new Three.TorusGeometry(0.3, 0.12, 12, 28);
+
+for (let i = 0; i < count; i++) {
+  const torusMesh = new Three.Mesh(geometry, matcapMaterial);
+
+  torusMesh.position.x = getRandomPostion().x;
+  torusMesh.position.y = getRandomPostion().y;
+  torusMesh.position.z = getRandomPostion().z;
+
+  torusMesh.rotation.x = Math.PI * Math.random();
+  torusMesh.rotation.y = Math.PI * Math.random();
+
+  const scale = Math.random();
+
+  torusMesh.scale.set(scale, scale, scale);
+
+  torusArray.push(torusMesh);
+}
+
+scene.add(...torusArray);
+
+const axesHelper = new Three.AxesHelper(2);
+scene.add(axesHelper);
 // controls
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
@@ -85,23 +137,18 @@ const renderer = new Three.WebGLRenderer({
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-const clock = new Three.Clock();
-
-const animate = () => {
-  // update meshs
-  // updateMesh();
+const tick = () => {
+  for (const torus of torusArray) {
+    gsap.to(torus.rotation, {
+      y: torus.rotation.y + Math.PI * 0.02,
+      x: torus.rotation.x + Math.PI * 0.02,
+    });
+  }
 
   controls.update();
   renderer.render(scene, camera);
+
+  window.requestAnimationFrame(tick);
 };
-renderer.setAnimationLoop(animate);
 
-function updateMesh() {
-  const elapesdTimer = clock.getElapsedTime();
-
-  const meshs = [sphereMesh, torusMesh, planeMesh];
-  for (const mesh of meshs) {
-    mesh.rotation.y = elapesdTimer * 0.1;
-    mesh.rotation.x = -elapesdTimer * 0.15;
-  }
-}
+tick();
